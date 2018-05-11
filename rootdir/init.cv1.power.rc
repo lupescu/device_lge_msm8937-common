@@ -1,0 +1,56 @@
+# LGE copyright 2016.
+
+import /init.lge.power.rc
+
+service gbmd /system/bin/gbmd
+   class main
+   socket gbm-client stream 660 system system
+   user system
+   group system
+
+service prmd /system/bin/prmd
+   class main
+   socket prm-client stream 660 system system
+   user system
+   group system
+
+on boot
+# setup permissions for fb0 related nodes
+    chown system system /sys/class/graphics/fb0/mdp/vfps
+    chmod 644 /sys/class/graphics/fb0/mdp/vfps
+    chown system system /sys/class/graphics/fb0/mdp/vfps_fcnt
+    chmod 644 /sys/class/graphics/fb0/mdp/vfps_fcnt
+    chown system system /sys/class/graphics/fb0/mdp/vfps_ratio
+    chmod 644 /sys/class/graphics/fb0/mdp/vfps_ratio
+    chown system system /sys/class/panel/img_tune/image_enhance_set
+    chmod 664 /sys/class/panel/img_tune/image_enhance_set
+    chown system system /sys/module/lpm_levels/parameters/sleep_disabled
+
+# chargerlogo
+on chargerlogo
+   trigger early-fs
+   trigger fs
+   trigger post-fs
+   trigger post-fs-data
+   trigger chargerlogo_exec
+
+# fuel gauge dumper for debug
+service fg-dump /system/bin/sh /system/etc/fg_dump.sh 10 /data/logger/fg.log
+   user root
+   group root system
+   class main
+   disabled
+   oneshot
+
+on property:persist.service.fg.enable=0
+   stop fg-dump
+on property:persist.service.fg.enable=1
+   start fg-dump
+on property:persist.service.fg.enable=2
+   start fg-dump
+on property:persist.service.fg.enable=3
+   start fg-dump
+on property:persist.service.fg.enable=4
+   start fg-dump
+on property:persist.service.fg.enable=5
+   restart fg-dump
